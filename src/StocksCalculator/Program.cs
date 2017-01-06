@@ -2,6 +2,7 @@
 using System.Collections.Generic;
 using System.Linq;
 using System.Threading.Tasks;
+using StocksCalculator.Extensions;
 using StocksCalculator.Models;
 using StocksCalculator.Services;
 using StocksCalculator.Strategies;
@@ -12,8 +13,8 @@ namespace StocksCalculator
     {
         public const string Snp500Ticker = "^GSPC";
         public const string BondsTicker = "VUSTX";
-        public const int YearsToBackTest = 3;
-
+        public const int YearsToBackTest = 5;
+        private const string DateFormat = "MMM-yy";
         public static void Main(string[] args)
         {
             Console.WriteLine("Welcome to intelligent stocks calculator");
@@ -22,7 +23,8 @@ namespace StocksCalculator
             var eYear = DateTime.Now.Year;
 
             var fin = new YahooFinanceService();
-            var trendFollowing = new TrendFollowing();
+            var trendFollowing = new TrendFollowingStrategy();
+            var momentum = new MomentumStrategy();
 
             Console.WriteLine($"Getting data from yahoo from {sYear} to {eYear}");
 
@@ -44,24 +46,75 @@ namespace StocksCalculator
             ).OrderBy(s => s.Date).ToList();
 
             Console.WriteLine("Stock prices:");
-            stockPrices.ForEach(r => Console.WriteLine($"{r.Date} S&P500: {r.Snp500} Bonds: {r.Bonds}"));
-            Console.WriteLine("");
-            Console.WriteLine("--------------------------------");
-            Console.WriteLine("Trend following result:");
+            ConsoleTable.PrintRow("Date", "S&P500", "Bonds");
+            ConsoleTable.PrintLine();
+            stockPrices.ForEach(r => ConsoleTable.PrintRow(r.Date.ToString(DateFormat), r.Snp500, r.Bonds));
+            ConsoleTable.PrintLine();
 
-            stockPrices.ForEach(r =>
-            {
-                var result = trendFollowing.Compute(stockPrices, r.Date.AddMonths(-1));
-                if (result.Item1 > 0)
-                {
-                    Console.WriteLine(
-                        $"{r.Date} S&P500: {r.Snp500} Bonds: {r.Bonds} Average: {result.Item1} Result: {result.Item2}");
-                }
-            });
+            TrendFollowing(stockPrices, trendFollowing);
+            Momentum(stockPrices, momentum);
 
             Console.WriteLine("Done. Thanks. Go away.");
             Console.ReadKey();
 
         }
+
+        private static void Momentum(List<StockPrice> stockPrices, MomentumStrategy strategy)
+        {
+            ConsoleTable.PrintLine();
+            Console.WriteLine("Momentum result:");
+
+            ConsoleTable.PrintLine();
+            ConsoleTable.PrintRow("Date", "S&P500", "12mMA", "3Mom", "6Mom", "12Mom", "AvMom", "TFF", "VANG",
+                "3Mom", "6Mom", "12Mom", "AvMom", "Result");
+
+            MomentumComputations momentumComputations = null;
+            StrategyResult result = StrategyResult.None;
+
+            stockPrices.ForEach(r =>
+            {
+                if (momentumComputations != null && momentumComputations.CanComputeResult)
+                {
+                    result = strategy.ComputeResult(momentumComputations);
+                }
+
+                momentumComputations = strategy.Compute(stockPrices, r.Date);
+                ConsoleTable.PrintRow(r.Date.ToString(DateFormat),
+                    r.Snp500,
+                    momentumComputations.Stocks12MonthMovingAverage,
+                    momentumComputations.Stocks3MonthMom.ToString("P"),
+                    momentumComputations.Stocks6MonthMom.ToString("P"),
+                    momentumComputations.Stocks12MonthMom.ToString("P"),
+                    momentumComputations.StocksAverageMomentum.ToString("P"),
+                    momentumComputations.TffFilter,
+                    r.Bonds,
+                    momentumComputations.Bonds3MonthMom.ToString("P"),
+                    momentumComputations.Bonds6MonthMom.ToString("P"),
+                    momentumComputations.Bonds12MonthMom.ToString("P"),
+                    momentumComputations.BondsAverageMomentum.ToString("P"),
+                    result);
+            });
+
+            ConsoleTable.PrintLine();
+        }
+
+        private static void TrendFollowing(List<StockPrice> stockPrices, TrendFollowingStrategy strategy)
+        {
+            Console.WriteLine("Trend following result:");
+
+            ConsoleTable.PrintLine();
+            ConsoleTable.PrintRow("Date", "Average", "Result");
+            stockPrices.ForEach(r =>
+            {
+                var result = strategy.Compute(stockPrices, r.Date.AddMonths(-1));
+                if (result.Result != StrategyResult.None)
+                {
+                    ConsoleTable.PrintRow(r.Date.ToString(DateFormat), result.Average, result.Result);
+                }
+            });
+
+            ConsoleTable.PrintLine();
+        }
     }
 }
+

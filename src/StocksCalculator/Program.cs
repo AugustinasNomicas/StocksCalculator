@@ -25,6 +25,7 @@ namespace StocksCalculator
             var fin = new YahooFinanceService();
             var trendFollowing = new TrendFollowingStrategy();
             var momentum = new MomentumStrategy();
+            var sellInMay = new SellInMayStrategy();
 
             Console.WriteLine($"Getting data from yahoo from {sYear} to {eYear}");
 
@@ -53,6 +54,7 @@ namespace StocksCalculator
 
             TrendFollowing(stockPrices, trendFollowing);
             Momentum(stockPrices, momentum);
+            SellInMay(stockPrices, sellInMay);
 
             Console.WriteLine("Done. Thanks. Go away.");
             Console.ReadKey();
@@ -107,6 +109,24 @@ namespace StocksCalculator
             stockPrices.ForEach(r =>
             {
                 var result = strategy.Compute(stockPrices, r.Date.AddMonths(-1));
+                if (result.Result != StrategyResult.None)
+                {
+                    ConsoleTable.PrintRow(r.Date.ToString(DateFormat), result.Average, result.Result);
+                }
+            });
+
+            ConsoleTable.PrintLine();
+        }
+
+        private static void SellInMay(List<StockPrice> stockPrices, SellInMayStrategy strategy)
+        {
+            Console.WriteLine("Sell in may result:");
+
+            ConsoleTable.PrintLine();
+            ConsoleTable.PrintRow("Date", "Average", "Result");
+            stockPrices.ForEach(r =>
+            {
+                var result = strategy.Compute(stockPrices, r.Date);
                 if (result.Result != StrategyResult.None)
                 {
                     ConsoleTable.PrintRow(r.Date.ToString(DateFormat), result.Average, result.Result);

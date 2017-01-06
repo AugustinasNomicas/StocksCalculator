@@ -10,12 +10,12 @@ namespace StocksCalculator.Services
     {
         private const string YahooUrl = "http://ichart.finance.yahoo.com/table.csv";
 
-        public async Task<List<YahooHistoricalStock>> DownloadDataAsync(string ticker, DateTime startDate, DateTime endDate)
+        public async Task<List<YahooHistoricalStock>> DownloadDataAsync(string ticker, int startYear, int endYear)
         {
             using (var web = new HttpClient())
             {
-                var url = $"{YahooUrl}?s={ticker}&a={startDate.Month}&b={startDate.Day}" +
-                          $"&c={startDate.Year}&d={endDate.Month}&e={endDate.Day}&f={endDate.Year}" +
+                var url = $"{YahooUrl}?s={ticker}&a=01&b=01" +
+                          $"&c={startYear}&d=01&e=01&f={endYear}" +
                           "&g=m&ignore=.csv";
                 
                 var data = web.GetStringAsync(url);

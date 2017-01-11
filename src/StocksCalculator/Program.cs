@@ -13,19 +13,20 @@ namespace StocksCalculator
     {
         public const string Snp500Ticker = "^GSPC";
         public const string BondsTicker = "VUSTX";
-        public const int YearsToBackTest = 5;
+        public const int YearsToBackTest = 10;
         private const string DateFormat = "MMM-yy";
         public static void Main(string[] args)
         {
             Console.WriteLine("Welcome to intelligent stocks calculator");
 
-            var sYear = DateTime.Now.AddYears((YearsToBackTest + 1) * -1).Year;
+            var sYear = DateTime.Now.AddYears((YearsToBackTest + 10) * -1).Year;
             var eYear = DateTime.Now.Year;
 
             var fin = new YahooFinanceService();
             var trendFollowing = new TrendFollowingStrategy();
             var momentum = new MomentumStrategy();
             var sellInMay = new SellInMayStrategy();
+            var ecri = new EcriStrategy();
 
             Console.WriteLine($"Getting data from yahoo from {sYear} to {eYear}");
 
@@ -52,9 +53,11 @@ namespace StocksCalculator
             stockPrices.ForEach(r => ConsoleTable.PrintRow(r.Date.ToString(DateFormat), r.Snp500, r.Bonds));
             ConsoleTable.PrintLine();
 
-            TrendFollowing(stockPrices, trendFollowing);
-            Momentum(stockPrices, momentum);
-            SellInMay(stockPrices, sellInMay);
+            //TrendFollowing(stockPrices, trendFollowing);
+            //Momentum(stockPrices, momentum);
+            //SellInMay(stockPrices, sellInMay);
+            Ecri(stockPrices, ecri);
+
 
             Console.WriteLine("Done. Thanks. Go away.");
             Console.ReadKey();
@@ -130,6 +133,37 @@ namespace StocksCalculator
                 if (result.Result != StrategyResult.None)
                 {
                     ConsoleTable.PrintRow(r.Date.ToString(DateFormat), result.Average, result.Result);
+                }
+            });
+
+            ConsoleTable.PrintLine();
+        }
+
+        private static void Ecri(List<StockPrice> stockPrices, EcriStrategy strategy)
+        {
+            Console.WriteLine("ECRI result:");
+
+            ConsoleTable.PrintLine();
+            ConsoleTable.PrintRow("Date", "Level", "12mChng", "12MA", "12MA_Mom", "CyclePhase", "S&P500", "StocksReturn", "Cycle", "10y1", "10y2", "10y3", "10y4");
+            stockPrices.ForEach(r =>
+            {
+                strategy.Compute(stockPrices, r.Date);
+                var result = strategy.EcriResults.Last();
+                if (result.Result != StrategyResult.None)
+                {
+                      ConsoleTable.PrintRow(r.Date.ToString(DateFormat), 
+                        result.EcriLevel, 
+                        result.EcriChange12M.ToString("P"),
+                        result.EcriMovingAvg12.ToString("P"),
+                        result.EcriMovingAvgMom12.ToString("P"),
+                        result.CyclePhase,
+                        r.Snp500,
+                        result.StocksReturn.ToString("P"),
+                        result.CyclePhaseTwoMonthsOld,
+                        result.StocksAvgReturnByCycle[0].AvgReturn.ToString("P"),
+                        result.StocksAvgReturnByCycle[1].AvgReturn.ToString("P"),
+                        result.StocksAvgReturnByCycle[2].AvgReturn.ToString("P"),
+                        result.StocksAvgReturnByCycle[3].AvgReturn.ToString("P"));
                 }
             });
 

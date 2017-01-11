@@ -23,7 +23,7 @@ namespace StocksCalculator.Extensions
             foreach (var column in columns)
             {
                 double colAsDouble = 0;
-                if (double.TryParse(column.ToString(), out colAsDouble))
+                if (double.TryParse(column?.ToString() ?? "0", out colAsDouble))
                 {
                     row += AlignCentre(Math.Round(colAsDouble, 3).ToString(CultureInfo.InvariantCulture), width) + "|";
                 }

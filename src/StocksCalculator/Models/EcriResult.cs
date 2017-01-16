@@ -15,6 +15,7 @@ namespace StocksCalculator.Models
 
         public double StocksMovingAvg { get; set; }
         public double StocksReturn { get; set; }
+        public bool StocksTrendFollowFilter { get; set; }
         public double BondsReturn { get; set; }
 
         public List<AvgReturnByCycle> StocksAvgReturnByCycle { get; set; }
@@ -27,5 +28,6 @@ namespace StocksCalculator.Models
     {
         public byte CyclePhase { get; set; }
         public double AvgReturn { get; set; }
+        public bool Result { get; set; }
     }
 }

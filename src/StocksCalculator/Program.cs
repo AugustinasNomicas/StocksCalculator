@@ -143,27 +143,56 @@ namespace StocksCalculator
         {
             Console.WriteLine("ECRI result:");
 
-            ConsoleTable.PrintLine();
-            ConsoleTable.PrintRow("Date", "Level", "12mChng", "12MA", "12MA_Mom", "CyclePhase", "S&P500", "StocksReturn", "Cycle", "10y1", "10y2", "10y3", "10y4");
+            //ConsoleTable.PrintLine();
+            //ConsoleTable.PrintRow("Date", "Level", "12mChng", "12MA", "12MA_Mom", "CyclePhase", "S&P500", "12ma", "StocksReturn", "Cycle",
+            //    "10y1", "10y2", "10y3", "10y4", "TF");
+            //stockPrices.ForEach(r =>
+            //{
+            //    strategy.Compute(stockPrices, r.Date);
+            //    var result = strategy.EcriResults.Last();
+            //    if (result.Result != StrategyResult.None)
+            //    {
+            //        ConsoleTable.PrintRow(r.Date.ToString(DateFormat),
+            //          result.EcriLevel,
+            //          result.EcriChange12M.ToString("P"),
+            //          result.EcriMovingAvg12.ToString("P"),
+            //          result.EcriMovingAvgMom12.ToString("P"),
+            //          result.CyclePhase,
+            //          r.Snp500,
+            //          result.StocksMovingAvg,
+            //          result.StocksReturn.ToString("P"),
+            //          result.CyclePhaseTwoMonthsOld,
+            //          result.StocksAvgReturnByCycle[0].AvgReturn.ToString("P"),
+            //          result.StocksAvgReturnByCycle[1].AvgReturn.ToString("P"),
+            //          result.StocksAvgReturnByCycle[2].AvgReturn.ToString("P"),
+            //          result.StocksAvgReturnByCycle[3].AvgReturn.ToString("P"),
+            //          result.StocksTrendFollowFilter);
+            //    }
+            //});
+
+            ConsoleTable.PrintRow("Date", "Level", "12mChng", "12MA", "12MA_Mom", "CyclePhase", "VANG_LTT", "Return", "Cycle",
+                "10y1", "10y2", "10y3", "10y4", "Result");
             stockPrices.ForEach(r =>
             {
                 strategy.Compute(stockPrices, r.Date);
                 var result = strategy.EcriResults.Last();
                 if (result.Result != StrategyResult.None)
                 {
-                      ConsoleTable.PrintRow(r.Date.ToString(DateFormat), 
-                        result.EcriLevel, 
-                        result.EcriChange12M.ToString("P"),
-                        result.EcriMovingAvg12.ToString("P"),
-                        result.EcriMovingAvgMom12.ToString("P"),
-                        result.CyclePhase,
-                        r.Snp500,
-                        result.StocksReturn.ToString("P"),
-                        result.CyclePhaseTwoMonthsOld,
-                        result.StocksAvgReturnByCycle[0].AvgReturn.ToString("P"),
-                        result.StocksAvgReturnByCycle[1].AvgReturn.ToString("P"),
-                        result.StocksAvgReturnByCycle[2].AvgReturn.ToString("P"),
-                        result.StocksAvgReturnByCycle[3].AvgReturn.ToString("P"));
+                    ConsoleTable.PrintRow(r.Date.ToString(DateFormat),
+                      result.EcriLevel,
+                      result.EcriChange12M.ToString("P"),
+                      result.EcriMovingAvg12.ToString("P"),
+                      result.EcriMovingAvgMom12.ToString("P"),
+                      result.CyclePhase,
+                      r.Bonds,
+                      result.BondsReturn.ToString("P"),
+                      result.CyclePhaseTwoMonthsOld,
+                      result.BondsAvgReturnByCycle[0].AvgReturn.ToString("P"),
+                      result.BondsAvgReturnByCycle[1].AvgReturn.ToString("P"),
+                      result.BondsAvgReturnByCycle[2].AvgReturn.ToString("P"),
+                      result.BondsAvgReturnByCycle[3].AvgReturn.ToString("P"),
+                      result.Result
+                      );
                 }
             });
 

@@ -26,7 +26,8 @@ namespace StocksCalculator.Strategies
             {
                 Date = dateTime,
                 Result = StrategyResult.None,
-                StocksAvgReturnByCycle = new List<AvgReturnByCycle>()
+                StocksAvgReturnByCycle = new List<AvgReturnByCycle>(),
+                BondsAvgReturnByCycle = new List<AvgReturnByCycle>()
             };
 
             // fill stock results with default values
@@ -34,9 +35,13 @@ namespace StocksCalculator.Strategies
                 Enumerable.Range(1, 4).Select(r => new AvgReturnByCycle
                 { AvgReturn = 0, CyclePhase = (byte)r }));
 
+            // fill bond results with default values
+            result.BondsAvgReturnByCycle.AddRange(
+                Enumerable.Range(1, 4).Select(r => new AvgReturnByCycle
+                { AvgReturn = 0, CyclePhase = (byte)r }));
+
             EcriResults.Add(result);
             var cyclePhaseComputed = ComputeCyclePhase(result, dateTime);
-            
 
             if (!cyclePhaseComputed)
                 return;
@@ -45,8 +50,43 @@ namespace StocksCalculator.Strategies
             if (!stocksComputed)
                 return;
 
+            var bondsComputed = ComputeBonds(prices, dateTime, result);
+            if (!bondsComputed)
+                return;
 
-            result.Result = StrategyResult.Stocks; // change this
+            var lastMonth = EcriResults.Single(e => e.Date == dateTime.AddMonths(-1));
+            for (var i = 0; i < 4; i++)
+            {
+                result.StocksAvgReturnByCycle[i].Result = (lastMonth.StocksAvgReturnByCycle[i].AvgReturn >
+                                                           lastMonth.BondsAvgReturnByCycle[i].AvgReturn
+                                                           && lastMonth.StocksTrendFollowFilter);
+                result.BondsAvgReturnByCycle[i].Result = !result.StocksAvgReturnByCycle[i].Result;
+            }
+
+            result.Result = result.StocksAvgReturnByCycle.Any(s => s.Result)
+                ? StrategyResult.Stocks
+                : StrategyResult.Bonds;
+        }
+
+        private bool ComputeBonds(List<StockPrice> prices, DateTime dateTime, EcriResult result)
+        {
+            result.BondsReturn = prices.Single(p => p.Date == dateTime).Bonds
+                / prices.Single(p => p.Date == dateTime.AddMonths(-1)).Bonds - 1;
+
+            var months = 120;
+            List<EcriResult> ecri10YearData;
+            if (!GetEcri10YearData(dateTime, months, out ecri10YearData)) return false;
+
+            result.BondsAvgReturnByCycle.Clear();
+            for (byte cycle = 1; cycle <= 4; cycle++)
+            {
+                var filtered = ecri10YearData.Where(e => e.CyclePhaseTwoMonthsOld == cycle).ToList();
+                var returnByCycle = filtered.Any() ? filtered.Average(r => r.BondsReturn) : -1;
+
+                result.BondsAvgReturnByCycle.Add(new AvgReturnByCycle { AvgReturn = returnByCycle, CyclePhase = cycle });
+            }
+
+            return true;
         }
 
         private bool ComputeStocks(List<StockPrice> prices, DateTime dateTime, EcriResult result)
@@ -59,11 +99,29 @@ namespace StocksCalculator.Strategies
                 .Select(s => s.Snp500)
                 .Average();
 
-            var months = 120; // 121
+            var months = 120;
+            List<EcriResult> ecri10YearData;
+            if (!GetEcri10YearData(dateTime, months, out ecri10YearData)) return false;
 
+            result.StocksAvgReturnByCycle.Clear();
+            for (byte cycle = 1; cycle <= 4; cycle++)
+            {
+                var filtered = ecri10YearData.Where(e => e.CyclePhaseTwoMonthsOld == cycle).ToList();
+                var returnByCycle = filtered.Any() ? filtered.Average(r => r.StocksReturn) : -1;
+
+                result.StocksAvgReturnByCycle.Add(new AvgReturnByCycle { AvgReturn = returnByCycle, CyclePhase = cycle });
+            }
+
+            result.StocksTrendFollowFilter = prices.Single(p => p.Date == dateTime).Snp500 > result.StocksMovingAvg;
+
+            return true;
+        }
+
+        private bool GetEcri10YearData(DateTime dateTime, int months, out List<EcriResult> ecri10YearData)
+        {
             months++;// inclusive period
-            var ecri10YearData = EcriResults.Where(p =>
-            p.Date >= dateTime.AddMonths(-months) && p.Date < dateTime).ToList();
+            ecri10YearData = EcriResults.Where(p =>
+                    p.Date >= dateTime.AddMonths(-months) && p.Date < dateTime).ToList();
 
             if (ecri10YearData.Count < months)
             {
@@ -79,17 +137,6 @@ namespace StocksCalculator.Strategies
             {
                 throw new InvalidOperationException($"10 Year data count should be no more then {months} months");
             }
-
-            result.StocksAvgReturnByCycle.Clear();
-            for (byte cycle = 1; cycle <= 4; cycle++)
-            {
-                //var returnByCycle = ecri10YearData.Where(e => e.CyclePhaseTwoMonthsOld == cycle).Count();
-                var filtered = ecri10YearData.Where(e => e.CyclePhaseTwoMonthsOld == cycle).ToList();
-                var returnByCycle = filtered.Any() ? filtered.Average(r => r.StocksReturn) : -1;
-
-                result.StocksAvgReturnByCycle.Add(new AvgReturnByCycle { AvgReturn = returnByCycle, CyclePhase = cycle });
-            }
-
             return true;
         }
 

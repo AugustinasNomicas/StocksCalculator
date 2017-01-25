@@ -63,9 +63,12 @@ namespace StocksCalculator.Strategies
                 result.BondsAvgReturnByCycle[i].Result = !result.StocksAvgReturnByCycle[i].Result;
             }
 
-            result.Result = result.StocksAvgReturnByCycle.Any(s => s.Result)
-                ? StrategyResult.Stocks
-                : StrategyResult.Bonds;
+            result.Result =
+                result.StocksTrendFollowFilter &&
+                result.StocksAvgReturnByCycle[result.CyclePhase.Value].AvgReturn >
+                result.BondsAvgReturnByCycle[result.CyclePhase.Value].AvgReturn
+                    ? StrategyResult.Stocks
+                    : StrategyResult.Bonds;
         }
 
         private bool ComputeBonds(List<StockPrice> prices, DateTime dateTime, EcriResult result)
@@ -119,7 +122,7 @@ namespace StocksCalculator.Strategies
         private bool GetEcri10YearData(DateTime dateTime, int months, out List<EcriResult> ecri10YearData)
         {
             ecri10YearData = EcriResults.Where(p =>
-                    p.Date.AddMonths(2) > dateTime.AddMonths(-months)
+                    p.Date.AddMonths(3) > dateTime.AddMonths(-months)
                     && p.Date < dateTime).ToList();
 
             if (ecri10YearData.Count < months)
@@ -132,9 +135,10 @@ namespace StocksCalculator.Strategies
                 return false;
             }
 
-            if (ecri10YearData.Count > months + 2)
+            var realMonthsCount = months + 2;
+            if (ecri10YearData.Count > realMonthsCount)
             {
-                throw new InvalidOperationException($"10 Year data count should be no more then {months + 2} months");
+                throw new InvalidOperationException($"10 Year data count should be no more then {realMonthsCount} months");
             }
             return true;
         }

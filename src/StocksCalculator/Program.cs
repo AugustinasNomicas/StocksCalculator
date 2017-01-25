@@ -21,7 +21,7 @@ namespace StocksCalculator
             Console.WriteLine("Welcome to intelligent stocks calculator");
 
             var sYear = DateTime.Now.AddYears((YearsToBackTest + 10) * -1).Year;
-            var eYear = 2014; // DateTime.Now.Year;
+            var eYear = 2015; // DateTime.Now.Year;
 
             var fin = new YahooFinanceService();
             var trendFollowing = new TrendFollowingStrategy();

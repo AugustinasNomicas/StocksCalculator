@@ -63,12 +63,12 @@ namespace StocksCalculator.Strategies
                 result.BondsAvgReturnByCycle[i].Result = !result.StocksAvgReturnByCycle[i].Result;
             }
 
-            result.Result =
-                result.StocksTrendFollowFilter &&
-                result.StocksAvgReturnByCycle[result.CyclePhase.Value].AvgReturn >
-                result.BondsAvgReturnByCycle[result.CyclePhase.Value].AvgReturn
+            if (result.CyclePhaseTwoMonthsOld.HasValue)
+            {
+                result.Result = result.StocksAvgReturnByCycle[result.CyclePhaseTwoMonthsOld.Value- 1].Result
                     ? StrategyResult.Stocks
                     : StrategyResult.Bonds;
+            }
         }
 
         private bool ComputeBonds(List<StockPrice> prices, DateTime dateTime, EcriResult result)
@@ -121,9 +121,13 @@ namespace StocksCalculator.Strategies
 
         private bool GetEcri10YearData(DateTime dateTime, int months, out List<EcriResult> ecri10YearData)
         {
+            // inclusive:
+            // from minus one year and one month
+            // to dateTime
+            
             ecri10YearData = EcriResults.Where(p =>
-                    p.Date.AddMonths(3) > dateTime.AddMonths(-months)
-                    && p.Date < dateTime).ToList();
+                    p.Date >= dateTime.AddMonths(-months).AddMonths(-1)
+                    && p.Date <= dateTime).ToList();
 
             if (ecri10YearData.Count < months)
             {

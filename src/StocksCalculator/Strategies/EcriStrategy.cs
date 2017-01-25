@@ -81,8 +81,7 @@ namespace StocksCalculator.Strategies
             for (byte cycle = 1; cycle <= 4; cycle++)
             {
                 var filtered = ecri10YearData.Where(e => e.CyclePhaseTwoMonthsOld == cycle).ToList();
-                var returnByCycle = filtered.Any() ? filtered.Average(r => r.BondsReturn) : -1;
-
+                var returnByCycle = filtered.Any() ? filtered.Average(r => r.BondsReturn) : -99999;
                 result.BondsAvgReturnByCycle.Add(new AvgReturnByCycle { AvgReturn = returnByCycle, CyclePhase = cycle });
             }
 
@@ -91,7 +90,7 @@ namespace StocksCalculator.Strategies
 
         private bool ComputeStocks(List<StockPrice> prices, DateTime dateTime, EcriResult result)
         {
-            result.StocksReturn = prices.Single(p => p.Date == dateTime).Snp500 
+            result.StocksReturn = prices.Single(p => p.Date == dateTime).Snp500
                 / prices.Single(p => p.Date == dateTime.AddMonths(-1)).Snp500 - 1;
 
             result.StocksMovingAvg =
@@ -119,9 +118,9 @@ namespace StocksCalculator.Strategies
 
         private bool GetEcri10YearData(DateTime dateTime, int months, out List<EcriResult> ecri10YearData)
         {
-            months++;// inclusive period
             ecri10YearData = EcriResults.Where(p =>
-                    p.Date >= dateTime.AddMonths(-months) && p.Date < dateTime).ToList();
+                    p.Date.AddMonths(2) > dateTime.AddMonths(-months)
+                    && p.Date < dateTime).ToList();
 
             if (ecri10YearData.Count < months)
             {
@@ -133,9 +132,9 @@ namespace StocksCalculator.Strategies
                 return false;
             }
 
-            if (ecri10YearData.Count > months)
+            if (ecri10YearData.Count > months + 2)
             {
-                throw new InvalidOperationException($"10 Year data count should be no more then {months} months");
+                throw new InvalidOperationException($"10 Year data count should be no more then {months + 2} months");
             }
             return true;
         }
@@ -143,7 +142,7 @@ namespace StocksCalculator.Strategies
         private bool ComputeCyclePhase(EcriResult result, DateTime dateTime)
         {
             var ecriMonthlyData = ReadDataFromEcriCsv().GroupBy(w => new DateTime(w.Item1.Year, w.Item1.Month, 1))
-                 .Select(m => m.Last()).Select(m => new Tuple<DateTime, double>(new DateTime(m.Item1.Year, m.Item1.Month, 1), m.Item2))
+                 .Select(m => m.Last()).Select(m => new Tuple<DateTime, decimal>(new DateTime(m.Item1.Year, m.Item1.Month, 1), m.Item2))
                  .ToList();
 
             var ecriYearData = ecriMonthlyData.Where(p => p.Item1 > dateTime.AddMonths(-Months) && p.Item1 <= dateTime).ToList();
@@ -175,7 +174,6 @@ namespace StocksCalculator.Strategies
             }
 
             result.EcriMovingAvg12 = yearResults.Average(r => r.EcriChange12M);
-
             var previuosResult = EcriResults.SingleOrDefault(r => r.Date.CompareByMonth(dateTime.AddMonths(-1)));
 
             if (previuosResult == null || previuosResult.EcriMovingAvg12 == 0)
@@ -189,7 +187,7 @@ namespace StocksCalculator.Strategies
             return true;
         }
 
-        private static byte DetectCyclePhase(double ecriMovingAvg12, double ecriMovingAvgMom12)
+        private static byte DetectCyclePhase(decimal ecriMovingAvg12, decimal ecriMovingAvgMom12)
         {
             if (ecriMovingAvg12 > 0 && ecriMovingAvgMom12 < 0)
                 return 1;
@@ -200,7 +198,7 @@ namespace StocksCalculator.Strategies
             return 4;
         }
 
-        private IEnumerable<Tuple<DateTime, double>> ReadDataFromEcriCsv()
+        private IEnumerable<Tuple<DateTime, decimal>> ReadDataFromEcriCsv()
         {
             var rows = File.ReadLines(EcriCsv);
             //First row is headers so skip it
@@ -211,8 +209,8 @@ namespace StocksCalculator.Strategies
 
                 var date = DateTime.ParseExact(cols[0], "MMM-yy", CultureInfo.InvariantCulture);
                 //var date = Convert.ToDateTime(cols[0]);
-                var level = Convert.ToDouble(cols[1]);
-                yield return new Tuple<DateTime, double>(date, level);
+                var level = Convert.ToDecimal(cols[1]);
+                yield return new Tuple<DateTime, decimal>(date, level);
             }
         }
     }

@@ -8,11 +8,11 @@ namespace StocksCalculator.Models
     public class YahooHistoricalStock
     {
         public DateTime Date { get; set; }
-        public double Open { get; set; }
-        public double High { get; set; }
-        public double Low { get; set; }
-        public double Close { get; set; }
-        public double Volume { get; set; }
-        public double AdjClose { get; set; }
+        public decimal Open { get; set; }
+        public decimal High { get; set; }
+        public decimal Low { get; set; }
+        public decimal Close { get; set; }
+        public decimal Volume { get; set; }
+        public decimal AdjClose { get; set; }
     }
 }

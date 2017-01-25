@@ -10,7 +10,7 @@ namespace StocksCalculator.Models
     public class StockPrice
     {
         public DateTime Date { get; set; }
-        public double Snp500 { get; set; }
-        public double Bonds { get; set; }
+        public decimal Snp500 { get; set; }
+        public decimal Bonds { get; set; }
     }
 }

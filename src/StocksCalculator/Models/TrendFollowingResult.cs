@@ -7,7 +7,7 @@ namespace StocksCalculator.Models
 {
     public class TrendFollowingResult
     {
-        public double Average { get; set; }
+        public decimal Average { get; set; }
         public StrategyResult Result { get; set; }
     }
 }

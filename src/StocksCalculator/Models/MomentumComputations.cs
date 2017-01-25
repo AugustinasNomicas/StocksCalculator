@@ -3,16 +3,16 @@
     public class MomentumComputations
     {
         public bool CanComputeResult { get; set; }
-        public double Stocks12MonthMovingAverage { get; set; }
-        public double Stocks3MonthMom { get; set; }
-        public double Stocks6MonthMom { get; set; }
-        public double Stocks12MonthMom { get; set; }
-        public double StocksAverageMomentum { get; set; }
+        public decimal Stocks12MonthMovingAverage { get; set; }
+        public decimal Stocks3MonthMom { get; set; }
+        public decimal Stocks6MonthMom { get; set; }
+        public decimal Stocks12MonthMom { get; set; }
+        public decimal StocksAverageMomentum { get; set; }
         public bool TffFilter { get; set; }
 
-        public double Bonds3MonthMom { get; set; }
-        public double Bonds6MonthMom { get; set; }
-        public double Bonds12MonthMom { get; set; }
-        public double BondsAverageMomentum { get; set; }
+        public decimal Bonds3MonthMom { get; set; }
+        public decimal Bonds6MonthMom { get; set; }
+        public decimal Bonds12MonthMom { get; set; }
+        public decimal BondsAverageMomentum { get; set; }
     }
 }

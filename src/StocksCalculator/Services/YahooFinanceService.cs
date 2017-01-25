@@ -1,5 +1,6 @@
 ﻿using System;
 using System.Collections.Generic;
+using System.IO;
 using System.Net.Http;
 using System.Threading.Tasks;
 using StocksCalculator.Models;
@@ -26,6 +27,12 @@ namespace StocksCalculator.Services
             }
         }
 
+        public List<YahooHistoricalStock> ReadDataFromFile(string filename)
+        {
+            var csvData = File.ReadAllText(filename);
+            return ParseCsv(csvData);
+        }
+
         private static List<YahooHistoricalStock> ParseCsv(string data)
         {
             var retval = new List<YahooHistoricalStock>();
@@ -43,12 +50,12 @@ namespace StocksCalculator.Services
                 var hs = new YahooHistoricalStock
                 {
                     Date = Convert.ToDateTime(cols[0]),
-                    Open = Convert.ToDouble(cols[1]),
-                    High = Convert.ToDouble(cols[2]),
-                    Low = Convert.ToDouble(cols[3]),
-                    Close = Convert.ToDouble(cols[4]),
-                    Volume = Convert.ToDouble(cols[5]),
-                    AdjClose = Convert.ToDouble(cols[6])
+                    Open = Convert.ToDecimal(cols[1]),
+                    High = Convert.ToDecimal(cols[2]),
+                    Low = Convert.ToDecimal(cols[3]),
+                    Close = Convert.ToDecimal(cols[4]),
+                    Volume = Convert.ToDecimal(cols[5]),
+                    AdjClose = Convert.ToDecimal(cols[6])
                 };
 
                 retval.Add(hs);

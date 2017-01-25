@@ -1,6 +1,7 @@
 ﻿using System;
 using System.Collections.Generic;
 using System.Linq;
+using System.Linq.Expressions;
 using System.Threading.Tasks;
 using StocksCalculator.Extensions;
 using StocksCalculator.Models;
@@ -13,14 +14,14 @@ namespace StocksCalculator
     {
         public const string Snp500Ticker = "^GSPC";
         public const string BondsTicker = "VUSTX";
-        public const int YearsToBackTest = 10;
+        public const int YearsToBackTest = 20;
         private const string DateFormat = "MMM-yy";
         public static void Main(string[] args)
         {
             Console.WriteLine("Welcome to intelligent stocks calculator");
 
             var sYear = DateTime.Now.AddYears((YearsToBackTest + 10) * -1).Year;
-            var eYear = DateTime.Now.Year;
+            var eYear = 2014; // DateTime.Now.Year;
 
             var fin = new YahooFinanceService();
             var trendFollowing = new TrendFollowingStrategy();
@@ -37,6 +38,7 @@ namespace StocksCalculator
             {
                 snp500 = await fin.DownloadDataAsync(Snp500Ticker, sYear, eYear);
                 bonds = await fin.DownloadDataAsync(BondsTicker, sYear, eYear);
+                //bonds = fin.ReadDataFromFile(@"C:\Users\nomicaug\Dropbox\Investavimas\Mokymai\Data\Vanguard Long-Term Treasury Inv (VUSTX).csv");
             }).Wait();
 
             var stockPrices = snp500.Select(s => new StockPrice
@@ -143,7 +145,7 @@ namespace StocksCalculator
         {
             Console.WriteLine("ECRI result:");
 
-            //ConsoleTable.PrintLine();
+            ConsoleTable.PrintLine();
             //ConsoleTable.PrintRow("Date", "Level", "12mChng", "12MA", "12MA_Mom", "CyclePhase", "S&P500", "12ma", "StocksReturn", "Cycle",
             //    "10y1", "10y2", "10y3", "10y4", "TF");
             //stockPrices.ForEach(r =>

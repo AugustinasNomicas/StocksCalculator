@@ -22,10 +22,10 @@ namespace StocksCalculator.Extensions
 
             foreach (var column in columns)
             {
-                double colAsDouble = 0;
-                if (double.TryParse(column?.ToString() ?? "0", out colAsDouble))
+                decimal colAsdecimal = 0;
+                if (decimal.TryParse(column?.ToString() ?? "0", out colAsdecimal))
                 {
-                    row += AlignCentre(Math.Round(colAsDouble, 3).ToString(CultureInfo.InvariantCulture), width) + "|";
+                    row += AlignCentre(Math.Round(colAsdecimal, 3).ToString(CultureInfo.InvariantCulture), width) + "|";
                 }
                 else
                 {

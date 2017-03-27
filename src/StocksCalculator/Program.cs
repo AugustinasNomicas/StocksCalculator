@@ -28,6 +28,7 @@ namespace StocksCalculator
             var momentum = new MomentumStrategy();
             var sellInMay = new SellInMayStrategy();
             var ecri = new EcriStrategy();
+            var oecd = new OecdStrategy();
 
             Console.WriteLine($"Getting data from yahoo from {sYear} to {eYear}");
 
@@ -58,7 +59,8 @@ namespace StocksCalculator
             //TrendFollowing(stockPrices, trendFollowing);
             //Momentum(stockPrices, momentum);
             //SellInMay(stockPrices, sellInMay);
-            Ecri(stockPrices, ecri);
+            //Ecri(stockPrices, ecri);
+            Oecd(stockPrices, oecd);
 
 
             Console.WriteLine("Done. Thanks. Go away.");
@@ -197,6 +199,19 @@ namespace StocksCalculator
                       );
                 }
             });
+
+            ConsoleTable.PrintLine();
+        }
+
+        private static void Oecd(List<StockPrice> stockPrices, OecdStrategy strategy)
+        {
+            Console.WriteLine("OECD result:");
+            ConsoleTable.PrintRow("Date", "Level");
+            strategy.Compute(stockPrices, DateTime.Now);
+
+            strategy.Result.ForEach(r =>
+            ConsoleTable.PrintRow(r.Date.ToString(DateFormat),
+                      r.OecdLevel));
 
             ConsoleTable.PrintLine();
         }

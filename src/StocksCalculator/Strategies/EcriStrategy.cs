@@ -77,8 +77,7 @@ namespace StocksCalculator.Strategies
                 / prices.Single(p => p.Date == dateTime.AddMonths(-1)).Bonds - 1;
 
             var months = 120;
-            List<EcriResult> ecri10YearData;
-            if (!GetEcri10YearData(dateTime, months, out ecri10YearData)) return false;
+            if (!GetEcri10YearData(dateTime, months, out List<EcriResult> ecri10YearData)) return false;
 
             result.BondsAvgReturnByCycle.Clear();
             for (byte cycle = 1; cycle <= 4; cycle++)
@@ -102,8 +101,7 @@ namespace StocksCalculator.Strategies
                 .Average();
 
             var months = 120;
-            List<EcriResult> ecri10YearData;
-            if (!GetEcri10YearData(dateTime, months, out ecri10YearData)) return false;
+            if (!GetEcri10YearData(dateTime, months, out List<EcriResult> ecri10YearData)) return false;
 
             result.StocksAvgReturnByCycle.Clear();
             for (byte cycle = 1; cycle <= 4; cycle++)
@@ -149,8 +147,8 @@ namespace StocksCalculator.Strategies
 
         private bool ComputeCyclePhase(EcriResult result, DateTime dateTime)
         {
-            var ecriMonthlyData = ReadDataFromEcriCsv().GroupBy(w => new DateTime(w.Item1.Year, w.Item1.Month, 1))
-                 .Select(m => m.Last()).Select(m => new Tuple<DateTime, decimal>(new DateTime(m.Item1.Year, m.Item1.Month, 1), m.Item2))
+            var ecriMonthlyData = ReadDataFromEcriCsv().GroupBy(w => new DateTime(w.date.Year, w.date.Month, 1))
+                 .Select(m => m.Last()).Select(m => new Tuple<DateTime, decimal>(new DateTime(m.date.Year, m.date.Month, 1), m.level))
                  .ToList();
 
             var ecriYearData = ecriMonthlyData.Where(p => p.Item1 > dateTime.AddMonths(-Months) && p.Item1 <= dateTime).ToList();
@@ -206,7 +204,7 @@ namespace StocksCalculator.Strategies
             return 4;
         }
 
-        private IEnumerable<Tuple<DateTime, decimal>> ReadDataFromEcriCsv()
+        private IEnumerable<(DateTime date, decimal level)> ReadDataFromEcriCsv()
         {
             var rows = File.ReadLines(EcriCsv);
             //First row is headers so skip it
@@ -216,9 +214,8 @@ namespace StocksCalculator.Strategies
                 var cols = row.Split(',');
 
                 var date = DateTime.ParseExact(cols[0], "MMM-yy", CultureInfo.InvariantCulture);
-                //var date = Convert.ToDateTime(cols[0]);
                 var level = Convert.ToDecimal(cols[1]);
-                yield return new Tuple<DateTime, decimal>(date, level);
+                yield return (date, level);
             }
         }
     }

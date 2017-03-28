@@ -5,19 +5,26 @@ using StocksCalculator.Models;
 
 namespace StocksCalculator.Strategies
 {
-    public class MomentumStrategy
+    public class MomentumStrategy : IStrategy
     {
-        public MomentumComputations Compute(List<StockPrice> prices, DateTime dateTime)
+        public List<MomentumResult> MomentumResult { get; } = new List<MomentumResult>();
+        public List<IStrategyResult> Results => MomentumResult.Select(r => (IStrategyResult)r).ToList();
+
+        public void Compute(List<StockPrice> prices, DateTime dateTime)
         {
-            var result = new MomentumComputations();
+            var result = new MomentumResult
+            {
+                Date = dateTime
+            };
 
             var trendFollowing = new TrendFollowingStrategy();
-            var tffFilter = trendFollowing.Compute(prices, dateTime);
+            var tffFilter = trendFollowing.ComputeSingle(prices, dateTime);
 
             if (tffFilter.Result == StrategyResult.None
                 || prices.SingleOrDefault(p => p.Date == dateTime.AddMonths(-12)) == null)
             {
-                return result;
+                MomentumResult.Add(result);
+                return;
             }
 
             var currentPrice = prices.Single(p => p.Date == dateTime);
@@ -35,19 +42,13 @@ namespace StocksCalculator.Strategies
             result.Bonds12MonthMom = currentPrice.Bonds / prices.Single(p => p.Date == dateTime.AddMonths(-12)).Bonds - 1;
             result.BondsAverageMomentum = (result.Bonds3MonthMom + result.Bonds6MonthMom + result.Bonds12MonthMom) / 3;
 
-            result.CanComputeResult = true;
-
-            return result;
-        }
-
-        public StrategyResult ComputeResult(MomentumComputations computations)
-        {
-            if (!computations.CanComputeResult)
-                return StrategyResult.None;
-
-            return (computations.StocksAverageMomentum > computations.BondsAverageMomentum && computations.TffFilter)
+            result.Result = (result.StocksAverageMomentum >
+                result.BondsAverageMomentum && result.TffFilter)
                 ? StrategyResult.Stocks
                 : StrategyResult.Bonds;
+
+            MomentumResult.Add(result);
         }
+
     }
 }

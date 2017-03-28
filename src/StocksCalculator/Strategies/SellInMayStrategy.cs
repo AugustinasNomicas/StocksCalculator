@@ -1,24 +1,30 @@
 ﻿using System;
 using System.Collections.Generic;
 using System.Linq;
-using System.Threading.Tasks;
 using StocksCalculator.Models;
 
 namespace StocksCalculator.Strategies
 {
-    public class SellInMayStrategy
+    public class SellInMayStrategy : IStrategy
     {
-        public SellInMayResult Compute(List<StockPrice> prices, DateTime dateTime)
+        private List<SellInMayResult> SellInMayResults = new List<SellInMayResult>();
+        public List<IStrategyResult> Results => SellInMayResults.Select(r => (IStrategyResult)r).ToList();
+
+        public void Compute(List<StockPrice> prices, DateTime dateTime)
         {
             var trendFollow = new TrendFollowingStrategy();
-            var tffResult = trendFollow.Compute(prices, dateTime.AddMonths(-1));
-            var tffResultCurrent = trendFollow.Compute(prices, dateTime);
+            var tffResult = trendFollow.ComputeSingle(prices, dateTime.AddMonths(-1));
+            var tffResultCurrent = trendFollow.ComputeSingle(prices, dateTime);
 
             if (tffResult.Result == StrategyResult.None)
-                return new SellInMayResult { Result = StrategyResult.None };
+            {
+                SellInMayResults.Add(new SellInMayResult { Result = StrategyResult.None });
+                return;
+            }
 
             var result = new SellInMayResult
             {
+                Date = dateTime,
                 Result = tffResult.Result == StrategyResult.Stocks
                          && (dateTime.Month >= 10 || dateTime.Month < 5)
                     ? StrategyResult.Stocks
@@ -26,7 +32,9 @@ namespace StocksCalculator.Strategies
                 Average = tffResultCurrent.Average
             };
 
-            return result;
+            SellInMayResults.Add(result);
+            return;
+
         }
     }
 }

@@ -3,7 +3,7 @@ using System.Collections.Generic;
 
 namespace StocksCalculator.Models
 {
-    public class EcriResult
+    public class EcriResult : IStrategyResult
     {
         public DateTime Date { get; set; }
         public decimal EcriLevel { get; set; }
@@ -18,16 +18,9 @@ namespace StocksCalculator.Models
         public bool StocksTrendFollowFilter { get; set; }
         public decimal BondsReturn { get; set; }
 
-        public List<AvgReturnByCycle> StocksAvgReturnByCycle { get; set; }
-        public List<AvgReturnByCycle> BondsAvgReturnByCycle { get; set; }
+        public List<AvgReturnByCycle> StocksAvgReturnByCycle { get; set; } = new List<AvgReturnByCycle>();
+        public List<AvgReturnByCycle> BondsAvgReturnByCycle { get; set; } = new List<AvgReturnByCycle>();
 
         public StrategyResult Result { get; set; }
-    }
-
-    public class AvgReturnByCycle
-    {
-        public byte CyclePhase { get; set; }
-        public decimal AvgReturn { get; set; }
-        public bool Result { get; set; }
     }
 }

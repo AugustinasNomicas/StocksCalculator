@@ -20,6 +20,13 @@ namespace StocksCalculator
         {
             Console.WriteLine("Welcome to intelligent stocks calculator");
 
+            var perfomanceBackTesting = new PerfomanceBackTesting();
+            perfomanceBackTesting.BackTest();
+            Console.WriteLine("Done. Thanks. Go away.");
+            Console.ReadKey();
+
+            return;
+
             var sYear = DateTime.Now.AddYears((YearsToBackTest + 10) * -1).Year;
             var eYear = 2015; // DateTime.Now.Year;
 
@@ -50,11 +57,11 @@ namespace StocksCalculator
             }
             ).OrderBy(s => s.Date).ToList();
 
-            Console.WriteLine("Stock prices:");
-            ConsoleTable.PrintRow("Date", "S&P500", "Bonds");
-            ConsoleTable.PrintLine();
-            stockPrices.ForEach(r => ConsoleTable.PrintRow(r.Date.ToString(DateFormat), r.Snp500, r.Bonds));
-            ConsoleTable.PrintLine();
+            //Console.WriteLine("Stock prices:");
+            //ConsoleTable.PrintRow("Date", "S&P500", "Bonds");
+            //ConsoleTable.PrintLine();
+            //stockPrices.ForEach(r => ConsoleTable.PrintRow(r.Date.ToString(DateFormat), r.Snp500, r.Bonds));
+            //ConsoleTable.PrintLine();
 
             //TrendFollowing(stockPrices, trendFollowing);
             //Momentum(stockPrices, momentum);
@@ -77,31 +84,27 @@ namespace StocksCalculator
             ConsoleTable.PrintRow("Date", "S&P500", "12mMA", "3Mom", "6Mom", "12Mom", "AvMom", "TFF", "VANG",
                 "3Mom", "6Mom", "12Mom", "AvMom", "Result");
 
-            MomentumComputations momentumComputations = null;
-            StrategyResult result = StrategyResult.None;
-
             stockPrices.ForEach(r =>
             {
-                if (momentumComputations != null && momentumComputations.CanComputeResult)
+                strategy.Compute(stockPrices, r.Date);
+                if (strategy.Results.Last() is MomentumResult result
+                    && result.Result != StrategyResult.None)
                 {
-                    result = strategy.ComputeResult(momentumComputations);
+                    ConsoleTable.PrintRow(r.Date.ToString(DateFormat),
+                        r.Snp500,
+                        result.Stocks12MonthMovingAverage,
+                        result.Stocks3MonthMom.ToString("P"),
+                        result.Stocks6MonthMom.ToString("P"),
+                        result.Stocks12MonthMom.ToString("P"),
+                        result.StocksAverageMomentum.ToString("P"),
+                        result.TffFilter,
+                        r.Bonds,
+                        result.Bonds3MonthMom.ToString("P"),
+                        result.Bonds6MonthMom.ToString("P"),
+                        result.Bonds12MonthMom.ToString("P"),
+                        result.BondsAverageMomentum.ToString("P"),
+                        result);
                 }
-
-                momentumComputations = strategy.Compute(stockPrices, r.Date);
-                ConsoleTable.PrintRow(r.Date.ToString(DateFormat),
-                    r.Snp500,
-                    momentumComputations.Stocks12MonthMovingAverage,
-                    momentumComputations.Stocks3MonthMom.ToString("P"),
-                    momentumComputations.Stocks6MonthMom.ToString("P"),
-                    momentumComputations.Stocks12MonthMom.ToString("P"),
-                    momentumComputations.StocksAverageMomentum.ToString("P"),
-                    momentumComputations.TffFilter,
-                    r.Bonds,
-                    momentumComputations.Bonds3MonthMom.ToString("P"),
-                    momentumComputations.Bonds6MonthMom.ToString("P"),
-                    momentumComputations.Bonds12MonthMom.ToString("P"),
-                    momentumComputations.BondsAverageMomentum.ToString("P"),
-                    result);
             });
 
             ConsoleTable.PrintLine();
@@ -115,8 +118,9 @@ namespace StocksCalculator
             ConsoleTable.PrintRow("Date", "Average", "Result");
             stockPrices.ForEach(r =>
             {
-                var result = strategy.Compute(stockPrices, r.Date.AddMonths(-1));
-                if (result.Result != StrategyResult.None)
+                strategy.Compute(stockPrices, r.Date);
+                if (strategy.Results.Last() is TrendFollowingResult result
+                && result.Result != StrategyResult.None)
                 {
                     ConsoleTable.PrintRow(r.Date.ToString(DateFormat), result.Average, result.Result);
                 }
@@ -133,8 +137,9 @@ namespace StocksCalculator
             ConsoleTable.PrintRow("Date", "Average", "Result");
             stockPrices.ForEach(r =>
             {
-                var result = strategy.Compute(stockPrices, r.Date);
-                if (result.Result != StrategyResult.None)
+                strategy.Compute(stockPrices, r.Date);
+                if ((strategy.Results.Last() is SellInMayResult result)
+                    && result.Result != StrategyResult.None)
                 {
                     ConsoleTable.PrintRow(r.Date.ToString(DateFormat), result.Average, result.Result);
                 }
@@ -179,7 +184,7 @@ namespace StocksCalculator
             stockPrices.ForEach(r =>
             {
                 strategy.Compute(stockPrices, r.Date);
-                var result = strategy.EcriResults.Last();
+                var result = strategy.Results.Last() as EcriResult;
                 if (result.Result != StrategyResult.None)
                 {
                     ConsoleTable.PrintRow(r.Date.ToString(DateFormat),
@@ -206,12 +211,19 @@ namespace StocksCalculator
         private static void Oecd(List<StockPrice> stockPrices, OecdStrategy strategy)
         {
             Console.WriteLine("OECD result:");
-            ConsoleTable.PrintRow("Date", "Level");
-            strategy.Compute(stockPrices, DateTime.Now);
+            ConsoleTable.PrintRow("Date", "Aver1", "Aver2", "Aver3", "Aver4");
 
-            strategy.Result.ForEach(r =>
-            ConsoleTable.PrintRow(r.Date.ToString(DateFormat),
-                      r.OecdLevel));
+            stockPrices.ForEach(r =>
+            {
+                strategy.Compute(stockPrices, r.Date);
+                var result = strategy.Results.Last() as OecdResult;
+                if (result.Result != StrategyResult.None)
+                {
+                    ConsoleTable.PrintRow(r.Date.ToString(DateFormat),
+                              result.Result
+                              );
+                }
+            });
 
             ConsoleTable.PrintLine();
         }

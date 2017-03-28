@@ -1,8 +1,11 @@
-﻿namespace StocksCalculator.Models
+﻿using System;
+
+namespace StocksCalculator.Models
 {
-    public class MomentumComputations
+    public class MomentumResult : IStrategyResult
     {
-        public bool CanComputeResult { get; set; }
+        public DateTime Date { get; set; }
+
         public decimal Stocks12MonthMovingAverage { get; set; }
         public decimal Stocks3MonthMom { get; set; }
         public decimal Stocks6MonthMom { get; set; }
@@ -14,5 +17,7 @@
         public decimal Bonds6MonthMom { get; set; }
         public decimal Bonds12MonthMom { get; set; }
         public decimal BondsAverageMomentum { get; set; }
+
+        public StrategyResult Result { get; set; }
     }
 }

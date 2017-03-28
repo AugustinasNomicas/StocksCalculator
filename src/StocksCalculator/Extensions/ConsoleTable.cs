@@ -22,16 +22,15 @@ namespace StocksCalculator.Extensions
 
             foreach (var column in columns)
             {
-                decimal colAsdecimal = 0;
-                if (decimal.TryParse(column?.ToString() ?? "0", out colAsdecimal))
+                if (decimal.TryParse(column?.ToString() ?? "0", out decimal colAsdecimal))
                 {
-                    row += AlignCentre(Math.Round(colAsdecimal, 3).ToString(CultureInfo.InvariantCulture), width) + "|";
+                    row += AlignCentre(Math.Round(colAsdecimal, 4).ToString(CultureInfo.InvariantCulture), width) + "|";
                 }
                 else
                 {
                     row += AlignCentre(column.ToString(), width) + "|";
                 }
-                
+
             }
 
             Console.WriteLine(row);

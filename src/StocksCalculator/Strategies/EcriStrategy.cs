@@ -8,26 +8,19 @@ using StocksCalculator.Models;
 
 namespace StocksCalculator.Strategies
 {
-    public class EcriStrategy
+    public class EcriStrategy : IStrategy
     {
         private const int Months = 12;
         private const string EcriCsv = @"..\..\ECRI.csv";
 
-        public List<EcriResult> EcriResults { get; set; }
-
-        public EcriStrategy()
-        {
-            EcriResults = new List<EcriResult>();
-        }
+        private List<EcriResult> EcriResults = new List<EcriResult>();
+        public List<IStrategyResult> Results => EcriResults.Select(r => (IStrategyResult)r).ToList();
 
         public void Compute(List<StockPrice> prices, DateTime dateTime)
         {
             var result = new EcriResult
             {
-                Date = dateTime,
-                Result = StrategyResult.None,
-                StocksAvgReturnByCycle = new List<AvgReturnByCycle>(),
-                BondsAvgReturnByCycle = new List<AvgReturnByCycle>()
+                Date = dateTime
             };
 
             // fill stock results with default values
@@ -65,7 +58,7 @@ namespace StocksCalculator.Strategies
 
             if (result.CyclePhaseTwoMonthsOld.HasValue)
             {
-                result.Result = result.StocksAvgReturnByCycle[result.CyclePhaseTwoMonthsOld.Value- 1].Result
+                result.Result = result.StocksAvgReturnByCycle[result.CyclePhaseTwoMonthsOld.Value - 1].Result
                     ? StrategyResult.Stocks
                     : StrategyResult.Bonds;
             }
@@ -122,7 +115,7 @@ namespace StocksCalculator.Strategies
             // inclusive:
             // from minus one year and one month
             // to dateTime
-            
+
             ecri10YearData = EcriResults.Where(p =>
                     p.Date >= dateTime.AddMonths(-months).AddMonths(-1)
                     && p.Date <= dateTime).ToList();

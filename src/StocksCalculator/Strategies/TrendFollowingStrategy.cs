@@ -10,16 +10,28 @@ namespace StocksCalculator.Strategies
     // Returns: 
     // average and bool result
     // true = buy stocks, false = sell stocks
-    public class TrendFollowingStrategy
+    public class TrendFollowingStrategy : IStrategy
     {
+        public List<TrendFollowingResult> TrendFollowingResult { get; } = new List<TrendFollowingResult>();
+        public List<IStrategyResult> Results => TrendFollowingResult.Select(r => (IStrategyResult)r).ToList();
         private const int Months = 12;
 
-        public TrendFollowingResult Compute(List<StockPrice> prices, DateTime dateTime)
+        public void Compute(List<StockPrice> prices, DateTime dateTime)
         {
+            TrendFollowingResult.Add(ComputeSingle(prices, dateTime));
+        }
+
+        public TrendFollowingResult ComputeSingle(List<StockPrice> prices, DateTime dateTime)
+        {
+            var result = new TrendFollowingResult()
+            {
+                Date = dateTime
+            };
+
             var yearData = prices.Where(p => p.Date > dateTime.AddMonths(-Months) && p.Date <= dateTime).ToList();
             if (yearData.Count < Months)
             {
-                return new TrendFollowingResult {Average = 0, Result = StrategyResult.None};
+                return result;
             }
 
             if (yearData.Count > Months)
@@ -27,9 +39,12 @@ namespace StocksCalculator.Strategies
                 throw new InvalidOperationException($"Year data count should be no more then {Months} months");
             }
 
-            var average = yearData.Average(p => p.Snp500);
-            var shouldBuy = prices.Single(p => p.Date.CompareByMonth(dateTime)).Snp500 > average;
-            return new TrendFollowingResult {Average = average, Result = shouldBuy ? StrategyResult.Stocks : StrategyResult.Bonds};
+            result.Average = yearData.Average(p => p.Snp500);
+            result.Result = prices
+                .Single(p => p.Date.CompareByMonth(dateTime)).Snp500 > result.Average
+                ? StrategyResult.Stocks : StrategyResult.Bonds;
+
+            return result;
         }
     }
 }

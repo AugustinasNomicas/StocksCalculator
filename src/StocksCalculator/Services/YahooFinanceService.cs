@@ -4,12 +4,35 @@ using System.IO;
 using System.Net.Http;
 using System.Threading.Tasks;
 using StocksCalculator.Models;
+using System.Linq;
 
 namespace StocksCalculator.Services
 {
     public class YahooFinanceService
     {
         private const string YahooUrl = "http://ichart.finance.yahoo.com/table.csv";
+
+        public List<StockPrice> GetStockPrices(int sYear, int eYear, string Snp500Ticker,
+            string BondsTicker, bool loadFromFile = false) // load from file is used to check with Mokymai data
+        {
+            Console.WriteLine($"Getting data from yahoo from {sYear} to {eYear}");
+            List<YahooHistoricalStock> snp500 = null;
+            List<YahooHistoricalStock> bonds = null;
+
+            Task.Run(async () =>
+            {
+                snp500 = await DownloadDataAsync(Snp500Ticker, sYear, eYear);
+                bonds = !loadFromFile ? await DownloadDataAsync(BondsTicker, sYear, eYear)
+                : ReadDataFromFile(@"C:\Users\nomicaug\Dropbox\Investavimas\Mokymai\Data\Vanguard Long-Term Treasury Inv (VUSTX).csv");
+            }).Wait();
+
+            return snp500.Select(s => new StockPrice
+            {
+                Date = new DateTime(s.Date.Year, s.Date.Month, 1),
+                Snp500 = s.AdjClose,
+                Bonds = bonds.Single(b => b.Date == s.Date).AdjClose
+            }).OrderBy(s => s.Date).ToList();
+        }
 
         public async Task<List<YahooHistoricalStock>> DownloadDataAsync(string ticker, int startYear, int endYear)
         {
@@ -18,7 +41,7 @@ namespace StocksCalculator.Services
                 var url = $"{YahooUrl}?s={ticker}&a=01&b=01" +
                           $"&c={startYear}&d=01&e=01&f={endYear}" +
                           "&g=m&ignore=.csv";
-                
+
                 var data = web.GetStringAsync(url);
 
                 var result = data.ContinueWith(d => ParseCsv(d.Result));

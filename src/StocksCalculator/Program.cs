@@ -18,19 +18,27 @@ namespace StocksCalculator
         private const string DateFormat = "MMM-yy";
         public static void Main(string[] args)
         {
+            var fin = new YahooFinanceService();
+            
             Console.WriteLine("Welcome to intelligent stocks calculator");
 
-            var perfomanceBackTesting = new PerfomanceBackTesting();
-            perfomanceBackTesting.BackTest();
+            var stockPrices = fin.GetStockPrices(1995, 2015, Snp500Ticker, BondsTicker);
+
+            //var perfomanceBackTesting = new PerfomanceBackTesting();
+            //perfomanceBackTesting.BackTest();
+            (new OecdStrategy()).PrintDetails(stockPrices);
+
             Console.WriteLine("Done. Thanks. Go away.");
             Console.ReadKey();
+
+            
 
             return;
 
             var sYear = DateTime.Now.AddYears((YearsToBackTest + 10) * -1).Year;
             var eYear = 2015; // DateTime.Now.Year;
 
-            var fin = new YahooFinanceService();
+            
             var trendFollowing = new TrendFollowingStrategy();
             var momentum = new MomentumStrategy();
             var sellInMay = new SellInMayStrategy();
@@ -39,23 +47,7 @@ namespace StocksCalculator
 
             Console.WriteLine($"Getting data from yahoo from {sYear} to {eYear}");
 
-            List<YahooHistoricalStock> snp500 = null;
-            List<YahooHistoricalStock> bonds = null;
-
-            Task.Run(async () =>
-            {
-                snp500 = await fin.DownloadDataAsync(Snp500Ticker, sYear, eYear);
-                bonds = await fin.DownloadDataAsync(BondsTicker, sYear, eYear);
-                //bonds = fin.ReadDataFromFile(@"C:\Users\nomicaug\Dropbox\Investavimas\Mokymai\Data\Vanguard Long-Term Treasury Inv (VUSTX).csv");
-            }).Wait();
-
-            var stockPrices = snp500.Select(s => new StockPrice
-            {
-                Date = new DateTime(s.Date.Year, s.Date.Month, 1),
-                Snp500 = s.AdjClose,
-                Bonds = bonds.Single(b => b.Date == s.Date).AdjClose
-            }
-            ).OrderBy(s => s.Date).ToList();
+            //var stockPrices = fin.GetStockPrices(sYear, eYear, Snp500Ticker, BondsTicker);
 
             //Console.WriteLine("Stock prices:");
             //ConsoleTable.PrintRow("Date", "S&P500", "Bonds");

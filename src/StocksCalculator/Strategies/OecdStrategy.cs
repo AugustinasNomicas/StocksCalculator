@@ -1,4 +1,5 @@
-﻿using StocksCalculator.Models;
+﻿using StocksCalculator.Extensions;
+using StocksCalculator.Models;
 using System;
 using System.Collections.Generic;
 using System.Globalization;
@@ -17,12 +18,45 @@ namespace StocksCalculator.Strategies
         private List<OecdResult> OecdResults = new List<OecdResult>();
         public List<IStrategyResult> Results => OecdResults.Select(r => (IStrategyResult)r).ToList();
 
+        public void PrintDetails(List<StockPrice> prices)
+        {
+            if (OecdResults.Any())
+            {
+                throw new InvalidOperationException("OecdResults must be empty");
+            }
+
+            Console.WriteLine("OECD result:");
+            ConsoleTable.PrintRow("Date", "Bonds", "Cycle", "Aver1", "Aver2", "Aver3", "Aver4");
+
+            foreach (var price in prices)
+            {
+                Compute(prices, price.Date);
+                var result = OecdResults.Single(r => r.Date == price.Date);
+                if (result.Result != StrategyResult.None)
+                {
+                    ConsoleTable.PrintRow(
+                        result.Date.ToString("MMM-yy"),
+                        price.Bonds,
+                        result.CyclePhase,
+                        result.BondsAvgReturnByCycle[0].AvgReturn.ToString("P"),
+                        result.BondsAvgReturnByCycle[1].AvgReturn.ToString("P"),
+                        result.BondsAvgReturnByCycle[2].AvgReturn.ToString("P"),
+                        result.BondsAvgReturnByCycle[3].AvgReturn.ToString("P"),
+                        result.Result);
+                }
+
+            }
+
+            ConsoleTable.PrintLine();
+        }
+
         public void Compute(List<StockPrice> prices, DateTime dateTime)
         {
             var result = new OecdResult
             {
-                Date = dateTime
+                Date = dateTime,
             };
+            OecdResults.Add(result);
 
             if (CsvData == null)
             {
@@ -31,33 +65,24 @@ namespace StocksCalculator.Strategies
 
             if (!FillLevel(result))
             {
-                OecdResults.Add(result);
                 return;
             };
 
             if (!ComputeLevelChangeAndCyclePhase(result) || !result.CyclePhaseTwoMonthsOld.HasValue)
             {
-                OecdResults.Add(result);
                 return;
             }
 
-            if (!ComputeStocks(prices, result))
-            {
-                OecdResults.Add(result);
-                return;
-            }
+            var stocksComputed = ComputeStocks(prices, result);
+            var bondsComputed = ComputeBonds(prices, dateTime, result);
 
-            if (!ComputeBonds(prices, dateTime, result))
-            {
-                OecdResults.Add(result);
+            if (!stocksComputed || !bondsComputed)
                 return;
-            }
 
             var lastMonth = OecdResults.Single(e => e.Date == dateTime.AddMonths(-1));
 
             if (!lastMonth.StocksAvgReturnByCycle.Any())
             {
-                OecdResults.Add(result);
                 return;
             }
 
@@ -76,7 +101,7 @@ namespace StocksCalculator.Strategies
                     : StrategyResult.Bonds;
             }
 
-            OecdResults.Add(result);
+
         }
 
         private bool FillLevel(OecdResult result)
@@ -96,7 +121,7 @@ namespace StocksCalculator.Strategies
             if (!OecdResults.Any())
                 return false;
 
-            var lastOecdLevel = OecdResults.Last().OecdLevel;
+            var lastOecdLevel = OecdResults.TakeLast(2).First().OecdLevel;
             var currentOecdLevel = result.OecdLevel;
             result.OecdLevelChange = currentOecdLevel - lastOecdLevel;
 
@@ -142,6 +167,7 @@ namespace StocksCalculator.Strategies
             {
                 var filtered = oecd10YearData.Where(e => e.CyclePhaseTwoMonthsOld == cycle).ToList();
                 var returnByCycle = filtered.Any() ? filtered.Average(r => r.StocksReturn) : -1;
+                //var returnByCycle = filtered.Any() ? filtered.Count() : -1;
 
                 result.StocksAvgReturnByCycle.Add(new AvgReturnByCycle { AvgReturn = returnByCycle, CyclePhase = cycle });
             }

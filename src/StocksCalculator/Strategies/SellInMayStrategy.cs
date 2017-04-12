@@ -18,7 +18,7 @@ namespace StocksCalculator.Strategies
 
             if (tffResult.Result == StrategyResult.None)
             {
-                SellInMayResults.Add(new SellInMayResult { Result = StrategyResult.None });
+                SellInMayResults.Add(new SellInMayResult { Result = StrategyResult.None, Date = dateTime });
                 return;
             }
 

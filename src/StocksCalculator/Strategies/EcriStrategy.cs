@@ -206,7 +206,7 @@ namespace StocksCalculator.Strategies
                 if (row.Replace("\n", "").Trim() == "") continue;
                 var cols = row.Split(',');
 
-                var date = DateTime.ParseExact(cols[0], "MMM-yy", CultureInfo.InvariantCulture);
+                var date = DateTime.ParseExact(cols[0], "dd-MMM-yy", CultureInfo.InvariantCulture);
                 var level = Convert.ToDecimal(cols[1]);
                 yield return (date, level);
             }

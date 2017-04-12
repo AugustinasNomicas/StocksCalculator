@@ -12,7 +12,7 @@ namespace StocksCalculator.Strategies
     {
         private const int Months = 12;
         private const string OECDCsv = @"..\..\OECD.csv";
-        private bool TestingCsvFormat = true; // indicates we are using simple CSV format for data copied from Mokymai spreadsheets
+        private bool TestingCsvFormat = false; // indicates we are using simple CSV format for data copied from Mokymai spreadsheets
         private List<(DateTime date, decimal level)> CsvData;
 
         private List<OecdResult> OecdResults = new List<OecdResult>();

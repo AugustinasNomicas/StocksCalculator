@@ -167,7 +167,6 @@ namespace StocksCalculator.Strategies
             {
                 var filtered = oecd10YearData.Where(e => e.CyclePhaseTwoMonthsOld == cycle).ToList();
                 var returnByCycle = filtered.Any() ? filtered.Average(r => r.StocksReturn) : -1;
-                //var returnByCycle = filtered.Any() ? filtered.Count() : -1;
 
                 result.StocksAvgReturnByCycle.Add(new AvgReturnByCycle { AvgReturn = returnByCycle, CyclePhase = cycle });
             }

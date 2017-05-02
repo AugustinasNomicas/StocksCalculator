@@ -38,8 +38,14 @@ namespace StocksCalculator.Services
         {
             using (var web = new HttpClient())
             {
+                int endMonth = 1;
+                if (endYear == DateTime.Now.Year)
+                {
+                    endMonth = DateTime.Now.Month;
+                }
+
                 var url = $"{YahooUrl}?s={ticker}&a=01&b=01" +
-                          $"&c={startYear}&d=01&e=01&f={endYear}" +
+                          $"&c={startYear}&d={endMonth}&e=01&f={endYear}" +
                           "&g=m&ignore=.csv";
 
                 var data = web.GetStringAsync(url);

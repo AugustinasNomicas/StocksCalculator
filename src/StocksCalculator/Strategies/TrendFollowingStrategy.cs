@@ -14,6 +14,7 @@ namespace StocksCalculator.Strategies
     {
         public List<TrendFollowingResult> TrendFollowingResult { get; } = new List<TrendFollowingResult>();
         public List<IStrategyResult> Results => TrendFollowingResult.Select(r => (IStrategyResult)r).ToList();
+
         private const int Months = 12;
 
         public void Compute(List<StockPrice> prices, DateTime dateTime)

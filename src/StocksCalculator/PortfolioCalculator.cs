@@ -34,12 +34,12 @@ namespace StocksCalculator
             };
         }
 
-        public CalculatResult Calculate(CalculateRequest request)
+        public List<CalculateMonthResult> Calculate(CalculateRequest request)
         {
             InitStrategies();
             var sYear = request.StartDate.AddYears(-10);
             var eYear = request.EndDate;
-            var result = new CalculatResult();
+            var result = new List<CalculateMonthResult>();
 
             var stockPrices = yahooFinanceService.GetStockPrices(sYear.Year, eYear.Year, request.StocksTicker,
                 request.BondsTicker);
@@ -54,11 +54,13 @@ namespace StocksCalculator
                 var ratio = CalculateStockAndRatio(stockPrice.Date, Strategies);
                 if (ratio.validResult)
                 {
-                    result.MonthResults.Add(new CalculateMonthResult
+                    result.Add(new CalculateMonthResult
                     {
                         Date = stockPrice.Date,
-                        StocksRation = ratio.stocks,
-                        BondsRation = ratio.bonds
+                        StocksRatio = ratio.stocks,
+                        BondsRatio = ratio.bonds,
+                        StockPrice = stockPrice.Snp500,
+                        BondPrice = stockPrice.Bonds
                     });
                 }
             }
@@ -76,8 +78,8 @@ namespace StocksCalculator
                 return (0, 0, false);
             }
 
-            decimal stocksRatio = strategiesInStock > 0 ? (decimal)strategiesInStock / strategies.Count   : 0;
-            decimal bondsRation = strategiesInBonds > 0 ? (decimal)strategiesInBonds / strategies.Count  : 0;
+            decimal stocksRatio = strategiesInStock > 0 ? (decimal)strategiesInStock / strategies.Count : 0;
+            decimal bondsRation = strategiesInBonds > 0 ? (decimal)strategiesInBonds / strategies.Count : 0;
             return (stocksRatio, bondsRation, true);
         }
 

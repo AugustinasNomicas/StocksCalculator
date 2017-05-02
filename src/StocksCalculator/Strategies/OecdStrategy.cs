@@ -82,15 +82,18 @@ namespace StocksCalculator.Strategies
             var lastMonth = OecdResults.Single(e => e.Date == dateTime.AddMonths(-1));
 
             if (!lastMonth.StocksAvgReturnByCycle.Any())
-            {
+            { 
                 return;
             }
+
+            if (lastMonth.OecdLevel == 0)
+                throw new InvalidOperationException("OECD Level can not be 0");
 
             for (var i = 0; i < 4; i++)
             {
                 result.StocksAvgReturnByCycle[i].Result = (lastMonth.StocksAvgReturnByCycle[i].AvgReturn >
                                                            lastMonth.BondsAvgReturnByCycle[i].AvgReturn
-                                                           && lastMonth.StocksTrendFollowFilter);
+                                                           && lastMonth.StocksTrendFollowFilter);   
                 result.BondsAvgReturnByCycle[i].Result = !result.StocksAvgReturnByCycle[i].Result;
             }
 
@@ -121,8 +124,11 @@ namespace StocksCalculator.Strategies
             if (!OecdResults.Any())
                 return false;
 
-            var lastOecdLevel = OecdResults.TakeLast(2).First().OecdLevel;
+            var lastOecdLevel = OecdResults.SingleOrDefault(r => r.Date == result.Date.AddMonths(-1))?.OecdLevel ?? 0;
             var currentOecdLevel = result.OecdLevel;
+
+
+
             result.OecdLevelChange = currentOecdLevel - lastOecdLevel;
 
             result.CyclePhase = 4;

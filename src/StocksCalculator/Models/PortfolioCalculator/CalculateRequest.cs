@@ -7,7 +7,6 @@ namespace StocksCalculator.Models.PortfolioCalculator
     {
         public DateTime StartDate { get; set; }
         public DateTime EndDate { get; set; }
-
         public string StocksTicker { get; set; }
         public string BondsTicker { get; set; }
     }

@@ -9,8 +9,12 @@ namespace StocksCalculator
 {
     public class Program
     {
-        public const string Snp500Ticker = "^GSPC"; // ^GSPC"; // SSO
-        public const string BondsTicker = "VUSTX"; //VUSTX"; //UBT
+        public const string Snp500Ticker = "^GSPC";
+        public const string BondsTicker = "VUSTX";
+
+        public const string Snp500MultiplierTicker = "SSO";
+        public const string BondsMultiplierTicker = "UBT";
+
         private const string DateFormat = "MMM-yy";
         public static void Main(string[] args)
         {
@@ -23,11 +27,11 @@ namespace StocksCalculator
             {
                 StocksTicker = Snp500Ticker,
                 BondsTicker = BondsTicker,
-                StartDate = new DateTime(2007, 1, 1),
+                StartDate = new DateTime(2010, 1, 1),
                 EndDate = new DateTime(2017, 5, 1),
             });
 
-            var results = performance.Calculate(result, 5000, 10);
+            var results = performance.Calculate(result, 5000, 10, true, Snp500MultiplierTicker, BondsMultiplierTicker);
             PrintMontlyResults(results.MonthResults);
             ConsoleTable.PrintLine();
             ConsoleTable.PrintLine();

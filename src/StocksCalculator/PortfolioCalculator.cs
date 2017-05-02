@@ -46,6 +46,7 @@ namespace StocksCalculator
 
             foreach (var stockPrice in stockPrices)
             {
+                
                 foreach (var strategy in Strategies)
                 {
                     strategy.Compute(stockPrices, stockPrice.Date);

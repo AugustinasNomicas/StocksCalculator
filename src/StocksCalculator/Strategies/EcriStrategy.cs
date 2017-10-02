@@ -11,7 +11,7 @@ namespace StocksCalculator.Strategies
     public class EcriStrategy : IStrategy
     {
         private const int Months = 12;
-        private const string EcriCsv = @"..\..\ECRI.csv";
+        private const string EcriCsv = @"..\..\csv\ECRI.csv";
 
         private List<EcriResult> EcriResults = new List<EcriResult>();
         public List<IStrategyResult> Results => EcriResults.Select(r => (IStrategyResult)r).ToList();

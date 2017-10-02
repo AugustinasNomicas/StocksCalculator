@@ -1,25 +1,23 @@
-﻿using StocksCalculator.Extensions;
-using StocksCalculator.Models;
+﻿using StocksCalculator.Models;
 using StocksCalculator.Models.PortfolioCalculator;
 using StocksCalculator.Services;
 using StocksCalculator.Strategies;
 using System;
 using System.Collections.Generic;
 using System.Linq;
-using System.Text;
-using System.Threading.Tasks;
+using StocksCalculator.Extensions;
 
 namespace StocksCalculator
 {
     public class PortfolioCalculator
     {
-        YahooFinanceService yahooFinanceService;
+        readonly IHistoricalStocksData _historicalStocksData;
 
         public List<IStrategy> Strategies { get; set; }
 
         public PortfolioCalculator()
         {
-            yahooFinanceService = new YahooFinanceService();
+            _historicalStocksData = new StocksCsvFileReader();
         }
 
         private void InitStrategies()
@@ -41,12 +39,12 @@ namespace StocksCalculator
             var eYear = request.EndDate;
             var result = new List<CalculateMonthResult>();
 
-            var stockPrices = yahooFinanceService.GetStockPrices(sYear.Year, eYear.Year, request.StocksTicker,
-                request.BondsTicker);
+            var stockPrices = _historicalStocksData.GetStockPrices(sYear.Year, eYear.Year, request.StocksTicker,
+                request.BondsTicker, request.EndDate.CompareByMonth(DateTime.Now) && DateTime.Now.Day == 1);
 
             foreach (var stockPrice in stockPrices)
             {
-                
+
                 foreach (var strategy in Strategies)
                 {
                     strategy.Compute(stockPrices, stockPrice.Date);

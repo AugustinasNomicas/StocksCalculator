@@ -1,4 +1,5 @@
-﻿using StocksCalculator.Extensions;
+﻿using System;
+using StocksCalculator.Extensions;
 using StocksCalculator.Models;
 using StocksCalculator.Models.PortfolioCalculator;
 using StocksCalculator.Services;
@@ -21,10 +22,10 @@ namespace StocksCalculator
             List<StockPrice> stockMultiplierPrices = null;
             if (useMultiplier)
             {
-                var yahooFinanceService = new YahooFinanceService();
-                stockMultiplierPrices = yahooFinanceService.GetStockPrices(monthlyResults.First().Date.Year,
+                var stockPrices = new StocksCsvFileReader();
+                stockMultiplierPrices = stockPrices.GetStockPrices(monthlyResults.First().Date.Year,
                     monthlyResults.Last().Date.Year,
-                    stocksMultiplierTicker, bondsMultiplierTicker);
+                    stocksMultiplierTicker, bondsMultiplierTicker, monthlyResults.Last().Date.CompareByMonth(DateTime.Now) && DateTime.Now.Day == 1);
             }
 
             foreach (var month in monthlyResults)

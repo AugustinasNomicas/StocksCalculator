@@ -3,7 +3,8 @@ using StocksCalculator.Extensions;
 using StocksCalculator.Models.PortfolioCalculator;
 using System.Collections.Generic;
 using System.Linq;
-using StocksCalculator.Strategies;
+using System.Runtime.InteropServices.ComTypes;
+using StocksCalculator.Models;
 
 namespace StocksCalculator
 {
@@ -15,20 +16,19 @@ namespace StocksCalculator
         public const string Snp500MultiplierTicker = "SSO";
         public const string BondsMultiplierTicker = "UBT";
 
-        private const string DateFormat = "MMM-yy";
         public static void Main(string[] args)
         {
             Console.WriteLine("Welcome to intelligent stocks calculator");
 
             var portfolio = new PortfolioCalculator();
-            var performance = new PerformanceCalculator();
+            var performance = new PerformanceCalculator(); ;
 
             var result = portfolio.Calculate(new CalculateRequest
             {
                 StocksTicker = Snp500Ticker,
                 BondsTicker = BondsTicker,
-                StartDate = new DateTime(2010, 1, 1),
-                EndDate = new DateTime(2017, 5, 1),
+                StartDate = new DateTime(2014, 1, 1),
+                EndDate = new DateTime(DateTime.Now.Year, DateTime.Now.Month, 1),
             });
 
             var results = performance.Calculate(result, 5000, 10, true, Snp500MultiplierTicker, BondsMultiplierTicker);
@@ -53,11 +53,17 @@ namespace StocksCalculator
             Console.WriteLine("Startegy results:");
             ConsoleTable.PrintRow("Date", "TD", "Momentum", "SellInMay", "ECRI", "OECD");
 
+            IList<StrategyResult> results = new List<StrategyResult>();
             foreach (var month in monthlyResults)
             {
-                var results = portfolio.Strategies.Select(s => s.Results.Single(r => r.Date == month.Date).Result).ToList();
+                results = portfolio.Strategies.Select(s => s.Results.Single(r => r.Date == month.Date).Result).ToList();
                 ConsoleTable.PrintRow(month.Date.ToString("MMM-yy"), results[0], results[1], results[2], results[3], results[4]);
             }
+
+            Console.WriteLine();
+            Console.WriteLine("Results:");
+            Console.WriteLine($"Stocks: {results.Count(r => r == StrategyResult.Stocks) * 20}%");
+            Console.WriteLine($"Bonds: {results.Count(r => r == StrategyResult.Bonds) * 20}%");
         }
 
         private static void PrintYearlyResults(List<CalculateMonthResult> monthlyResults)
